@@ -1,0 +1,9 @@
+main: com.aquanova_mp.winhomes.WinHomes
+name: WinHomes
+version: 0.1.0
+author: Archer6621
+description: WinDooM's very own home plugin
+commands:
+  home:
+    description: Teleports the id to his home if set, or teleports to another's home if a player's name is given
+    usage: /home <others_home>
