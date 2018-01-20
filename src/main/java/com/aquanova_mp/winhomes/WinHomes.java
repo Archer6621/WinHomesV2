@@ -20,6 +20,7 @@ public class WinHomes extends JavaPlugin {
 		dataSource.setUser("root");
 		dataSource.setPassword("potato");
 		dataSource.setServerName("localhost");
+		dataSource.setDatabaseName("winhomes");
 		dataSource.setAllowMultiQueries(true);
 	}
 
@@ -28,6 +29,7 @@ public class WinHomes extends JavaPlugin {
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.initializeDataBase(this, dataSource);
 		this.getCommand("home_set").setExecutor(new CommandHomeSet(this));
+		this.getCommand("home").setExecutor(new CommandHome(this));
 	}
 
 	@Override

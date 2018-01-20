@@ -1,6 +1,7 @@
 package com.aquanova_mp.winhomes;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -41,41 +42,45 @@ public class CommandHome implements CommandExecutor {
 
 			String playerID = player.getUniqueId().toString();
 
-			String query = null;
 			try {
-				query = "SELECT * FROM home WHERE uuid=?";
+				String query = SQLTools.queryReader("get_home.sql");
 				Connection conn = main.getDataSource().getConnection();
-				PreparedStatement preparedStmt = conn.prepareStatement(query);
+				PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 				preparedStmt.setString(1, playerID);
 				ResultSet rs = preparedStmt.executeQuery();
 
 				// A player can only have a single home
 				if (rs.next()) {
-					// Retrieve location data and put player at home location
-					player.getLocation().setX(rs.getDouble(3));
-					player.getLocation().setY(rs.getDouble(4));
-					player.getLocation().setZ(rs.getDouble(5));
-					player.getLocation().setPitch((float)rs.getDouble(6));
-					player.getLocation().setYaw((float)rs.getDouble(7));
 
 					// Attempt to obtain the world if it exists
 					String worldID = rs.getString(8);
 					World world = getBukkitWorld(worldID);
 					if (world != null) {
 						player.getLocation().setWorld(world);
+
+						// Retrieve location data and put player at home location
+						Location loc = player.getLocation();
+						loc.setX(rs.getDouble(3));
+						loc.setY(rs.getDouble(4));
+						loc.setZ(rs.getDouble(5));
+						loc.setPitch((float)rs.getDouble(6));
+						loc.setYaw((float)rs.getDouble(7));
+						player.teleport(loc);
+						main.getLogger().log(Level.INFO, "Teleported player " + player.getPlayerListName() + " to its home.");
+						return true;
+
 					} else {
 						main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
 						return false;
 					}
 
-					return true;
 				} else {
 					main.getLogger().log(Level.INFO, "No home found for player " + player.getName() + " (" + playerID + ")");
 					return false;
 				}
 
 
-			} catch (SQLException e) {
+			} catch (SQLException | IOException e) {
 				main.getLogger().log(Level.WARNING, "Error executing command " + label + " with args: " + Arrays.toString(args));
 				e.printStackTrace();
 			}
