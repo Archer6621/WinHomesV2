@@ -17,6 +17,7 @@ public class WinHomes extends JavaPlugin {
 		dataSource.setUser("root");
 		dataSource.setPassword("potato");
 		dataSource.setServerName("localhost");
+		dataSource.setAllowMultiQueries(true);
 
 		Connection conn;
 		try {
@@ -45,7 +46,7 @@ public class WinHomes extends JavaPlugin {
 			}
 
 			// Load the DB creation query
-			String query = SQLTools.queryReader(getClass().getResourceAsStream("tets"));
+			String query = SQLTools.queryReader("create_tables.sql");
 
 			ResultSet rs = stmt.executeQuery(query);
 			getLogger().log(Level.INFO,"Tables created!");

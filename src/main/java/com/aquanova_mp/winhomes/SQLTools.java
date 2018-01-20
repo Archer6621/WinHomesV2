@@ -1,15 +1,14 @@
 package com.aquanova_mp.winhomes;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class SQLTools {
 
-	public static String queryReader(InputStream in) throws IOException {
+	public static String queryReader(String query) throws IOException {
+		InputStream in = SQLTools.class.getResourceAsStream("/queries/"+query);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		StringBuilder str = new StringBuilder();
 		String line;
