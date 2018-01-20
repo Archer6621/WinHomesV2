@@ -10,6 +10,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 
+/**
+ * The main plugin class
+ */
 public class WinHomes extends JavaPlugin {
 
 	private void initDB() {

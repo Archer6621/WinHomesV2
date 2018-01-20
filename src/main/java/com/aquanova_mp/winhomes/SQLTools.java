@@ -6,16 +6,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+/**
+ * This class contains several tools for interacting with the database and related matters
+ */
 public class SQLTools {
 
+	/**
+	 * QueryException is used during query substitution, if the amount of substitution parameters doesn't match the substitutions characters in the query
+	 */
 	public static class QueryException extends Exception {
 		public QueryException(String message) {
 			super(message);
 		}
 	}
 
-	public static String queryReader(String queryPath) throws IOException {
-		InputStream in = SQLTools.class.getResourceAsStream("/queries/"+queryPath);
+	/**
+	 * Reads a query file from the query folder.
+	 *
+	 * @param queryFileName the file name of the query file
+	 * @return the query as a string
+	 * @throws IOException thrown when the given file cannot be found
+	 */
+	public static String queryReader(String queryFileName) throws IOException {
+		InputStream in = SQLTools.class.getResourceAsStream("/queries/"+queryFileName);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		StringBuilder str = new StringBuilder();
 		String line;
@@ -26,8 +39,17 @@ public class SQLTools {
 		return str.toString();
 	}
 
-	public static String queryReader(String queryPath, ArrayList<String> substitutions) throws IOException, QueryException {
-		String queryString = queryReader(queryPath);
+	/**
+	 * Reads a query file from the query folder and then substitutes question marks in the query with the given items in the ArrayList in an ordered fashion
+	 *
+	 * @param queryFileName the file name of the query file
+	 * @param substitutions the array list with substitution strings
+	 * @return the query as string, with substitutions
+	 * @throws IOException    thrown when the given file cannot be found
+	 * @throws QueryException thrown when the amount of items in the array list doesn't match the available query parameters
+	 */
+	public static String queryReader(String queryFileName, ArrayList<String> substitutions) throws IOException, QueryException {
+		String queryString = queryReader(queryFileName);
 
 		for (String sub : substitutions) {
 			if (queryString.contains("?")) {
