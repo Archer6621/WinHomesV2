@@ -10,6 +10,10 @@ import java.util.logging.Level;
 public class WinHomes extends JavaPlugin {
 	private MysqlDataSource dataSource;
 
+	public MysqlDataSource getDataSource() {
+		return dataSource;
+	}
+
 	public WinHomes() {
 		// TODO: Add YAML configuration
 		dataSource = new MysqlDataSource();
@@ -23,6 +27,7 @@ public class WinHomes extends JavaPlugin {
 	public void onEnable() {
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.initializeDataBase(this, dataSource);
+		this.getCommand("home_set").setExecutor(new CommandHomeSet(this));
 	}
 
 	@Override

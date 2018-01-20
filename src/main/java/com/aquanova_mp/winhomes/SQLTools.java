@@ -46,33 +46,6 @@ public class SQLTools {
 		return str.toString();
 	}
 
-	/**
-	 * Reads a query file from the query folder and then substitutes question marks in the query with the given items in the ArrayList in an ordered fashion
-	 *
-	 * @param queryFileName the file name of the query file
-	 * @param substitutions the array list with substitution strings
-	 * @return the query as string, with substitutions
-	 * @throws IOException    thrown when the given file cannot be found
-	 * @throws QueryException thrown when the amount of items in the array list doesn't match the available query parameters
-	 */
-	public static String queryReader(String queryFileName, ArrayList<String> substitutions) throws IOException, QueryException {
-		String queryString = queryReader(queryFileName);
-
-		for (String sub : substitutions) {
-			if (queryString.contains("?")) {
-				queryString = queryString.replaceFirst("\\?", sub);
-			} else {
-				throw new QueryException("Too many substitution parameters given");
-			}
-		}
-
-		if (queryString.contains("?")) {
-			throw new QueryException("Too few substitution parameters given");
-		}
-
-		return queryString;
-	}
-
 	public static void initializeDataBase(WinHomes main, MysqlDataSource dataSource) {
 		try {
 			Connection conn = dataSource.getConnection();
@@ -83,7 +56,6 @@ public class SQLTools {
 			// Iterate through catalog to find the database names
 			while (resultSet.next()) {
 				String databaseName = resultSet.getString(1); // Database name is at the first position
-				main.getLogger().log(Level.INFO,databaseName);
 				if (databaseName.equals("winhomes")) {
 					exists = true;
 					main.getLogger().log(Level.INFO,"winhomes database found, continuing...");

@@ -5,5 +5,9 @@ author: Archer6621
 description: WinDooM's very own home plugin
 commands:
   home:
-    description: Teleports the id to his home if set, or teleports to another's home if a player's name is given
+    description: Teleports the player to his home if set, or teleports to another's home if a player's name is given
     usage: /home <others_home>
+  home_set:
+    description: Sets the player's home
+    usage: /home_set
+    aliases: [sethome, homeset]
