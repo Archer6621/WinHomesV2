@@ -19,7 +19,7 @@ CREATE TABLE home (
 CREATE TABLE home_invite (
     home_uuid varchar(36) NOT NULL,
     uuid varchar(36) NOT NULL,
-    CONSTRAINT home_invite_pk PRIMARY KEY (home_uuid)
+    CONSTRAINT home_invite_pk PRIMARY KEY (home_uuid,uuid)
 );
 
 -- foreign keys

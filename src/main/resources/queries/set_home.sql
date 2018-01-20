@@ -1,0 +1,1 @@
+REPLACE INTO home (uuid, name, x, y, z, pitch, yaw, world) values (?,?,?,?,?,?,?,?);

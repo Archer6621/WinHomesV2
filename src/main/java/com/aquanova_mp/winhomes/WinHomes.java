@@ -28,8 +28,9 @@ public class WinHomes extends JavaPlugin {
 	public void onEnable() {
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.initializeDataBase(this, dataSource);
-		this.getCommand("home_set").setExecutor(new CommandHomeSet(this));
 		this.getCommand("home").setExecutor(new CommandHome(this));
+		this.getCommand("home_set").setExecutor(new CommandHomeSet(this));
+		this.getCommand("home_invite").setExecutor(new CommandHomeInvite(this));
 	}
 
 	@Override

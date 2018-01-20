@@ -1,0 +1,1 @@
+SELECT home_invite.uuid FROM home JOIN home_invite ON home.uuid = home_invite.home_uuid WHERE name=?;

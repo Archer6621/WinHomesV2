@@ -1,0 +1,1 @@
+REPLACE INTO home_invite (home_uuid, uuid) values (?, ?);

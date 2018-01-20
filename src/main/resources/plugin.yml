@@ -8,6 +8,10 @@ commands:
     description: Teleports the player to his home if set, or teleports to another's home if a player's name is given
     usage: /home <others_home>
   home_set:
-    description: Sets the player's home
+    description: Sets your home
     usage: /home_set
     aliases: [sethome, homeset]
+  home_invite:
+    description: Invites a player to your home
+    usage: /home_invite <player_name>
+    aliases: [invitehome, homeinvite]

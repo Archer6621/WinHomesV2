@@ -44,11 +44,32 @@ public class CommandHome implements CommandExecutor {
 				Connection conn = main.getDataSource().getConnection();
 				if (args.length > 0) {
 					String otherPlayerName = args[0];
-					String query = SQLTools.queryReader("get_home_other.sql");
-					PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-					preparedStmt.setString(1, otherPlayerName);
-					ResultSet rs = preparedStmt.executeQuery();
-					return teleportPlayer(player, rs);
+
+					// First perform a query to see whether this player is actually invited to the other's home
+					String query = SQLTools.queryReader("check_home_other.sql");
+					PreparedStatement preparedStmt1 = conn.prepareStatement(query);
+					preparedStmt1.setString(1, otherPlayerName);
+					ResultSet rs1 = preparedStmt1.executeQuery();
+					// Iterate over UUID of players invited to the home of the other player
+					boolean invited = false;
+					while (rs1.next()) {
+						String uuid = rs1.getString(1);
+						if (uuid.equals(player.getUniqueId().toString())) {
+							invited = true;
+							break;
+						}
+					}
+
+					// If invited, teleport to that player's home
+					if (invited) {
+						query = SQLTools.queryReader("get_home_other.sql");
+						PreparedStatement preparedStmt2 = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+						preparedStmt2.setString(1, otherPlayerName);
+						ResultSet rs = preparedStmt2.executeQuery();
+						return teleportPlayer(player, rs);
+					} else {
+						main.getLogger().log(Level.INFO, "Player " + player.getName() + " is not invited to " +otherPlayerName + "'s home");
+					}
 				} else {
 					String query = SQLTools.queryReader("get_home.sql");
 					PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
