@@ -23,10 +23,10 @@ public class CommandHome implements CommandExecutor {
 		this.main = winhomes;
 	}
 
-	public World getBukkitWorld(String world){
+	public World getBukkitWorld(String world) {
 		World w = null;
 
-		for(int i = 0; i < Bukkit.getWorlds().size() ; i++) {
+		for (int i = 0; i < Bukkit.getWorlds().size(); i++) {
 			if (Bukkit.getWorlds().get(i).getUID().toString().equals(world)) {
 				w = Bukkit.getWorlds().get(i);
 			}
@@ -40,52 +40,56 @@ public class CommandHome implements CommandExecutor {
 		if (commandSender instanceof Player) {
 			Player player = (Player) commandSender;
 
-			String playerID = player.getUniqueId().toString();
-
 			try {
-				String query = SQLTools.queryReader("get_home.sql");
 				Connection conn = main.getDataSource().getConnection();
-				PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-				preparedStmt.setString(1, playerID);
-				ResultSet rs = preparedStmt.executeQuery();
-
-				// A player can only have a single home
-				if (rs.next()) {
-
-					// Attempt to obtain the world if it exists
-					String worldID = rs.getString(8);
-					World world = getBukkitWorld(worldID);
-					if (world != null) {
-						player.getLocation().setWorld(world);
-
-						// Retrieve location data and put player at home location
-						Location loc = player.getLocation();
-						loc.setX(rs.getDouble(3));
-						loc.setY(rs.getDouble(4));
-						loc.setZ(rs.getDouble(5));
-						loc.setPitch((float)rs.getDouble(6));
-						loc.setYaw((float)rs.getDouble(7));
-						player.teleport(loc);
-						main.getLogger().log(Level.INFO, "Teleported player " + player.getPlayerListName() + " to its home.");
-						return true;
-
-					} else {
-						main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
-						return false;
-					}
-
+				if (args.length > 0) {
+					String otherPlayerName = args[0];
+					String query = SQLTools.queryReader("get_home_other.sql");
+					PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+					preparedStmt.setString(1, otherPlayerName);
+					ResultSet rs = preparedStmt.executeQuery();
+					return teleportPlayer(player, rs);
 				} else {
-					main.getLogger().log(Level.INFO, "No home found for player " + player.getName() + " (" + playerID + ")");
-					return false;
+					String query = SQLTools.queryReader("get_home.sql");
+					PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+					preparedStmt.setString(1, player.getUniqueId().toString());
+					ResultSet rs = preparedStmt.executeQuery();
+					return teleportPlayer(player, rs);
 				}
-
-
 			} catch (SQLException | IOException e) {
 				main.getLogger().log(Level.WARNING, "Error executing command " + label + " with args: " + Arrays.toString(args));
 				e.printStackTrace();
 			}
-
 		}
 		return false;
+	}
+
+	private Boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
+		if (rs.next()) {
+			// Attempt to obtain the world if it exists
+			String worldID = rs.getString(8);
+			World world = getBukkitWorld(worldID);
+			if (world != null) {
+				player.getLocation().setWorld(world);
+
+				// Retrieve location data and put player at home location
+				Location loc = player.getLocation();
+				loc.setX(rs.getDouble(3));
+				loc.setY(rs.getDouble(4));
+				loc.setZ(rs.getDouble(5));
+				loc.setPitch((float) rs.getDouble(6));
+				loc.setYaw((float) rs.getDouble(7));
+				player.teleport(loc);
+				main.getLogger().log(Level.INFO, "Teleported player " + player.getPlayerListName() + " to its home.");
+				return true;
+			} else {
+				main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
+				return false;
+			}
+
+		} else {
+			main.getLogger().log(Level.INFO, "No home found for player " + player.getName() + " (" + player.getUniqueId().toString() + ")");
+			return false;
+		}
 	}
 }
