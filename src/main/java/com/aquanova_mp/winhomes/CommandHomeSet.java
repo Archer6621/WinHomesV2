@@ -35,26 +35,47 @@ public class CommandHomeSet implements CommandExecutor {
 			double yaw = player.getLocation().getYaw();
 			String worldID = player.getWorld().getUID().toString();
 
-			// Prepare SQL statement
+			// Prepare and execute SQL statements
 			try {
 				Connection conn = main.getDataSource().getConnection();
 
-				String query = SQLTools.queryReader("set_home.sql");
-				PreparedStatement preparedStmt = conn.prepareStatement(query);
+				// Add the player to the database
+				String queryAddPlayer = SQLTools.queryReader("add_player.sql");
+				PreparedStatement preparedStatementAddPlayer = conn.prepareStatement(queryAddPlayer);
 
-				// Set query parameters
-				preparedStmt.setString(1, playerID);
-				preparedStmt.setString(2, playerName);
-				preparedStmt.setDouble(3, x);
-				preparedStmt.setDouble(4, y);
-				preparedStmt.setDouble(5, z);
-				preparedStmt.setDouble(6, pitch);
-				preparedStmt.setDouble(7, yaw);
-				preparedStmt.setString(8, worldID);
+				preparedStatementAddPlayer.setString(1, playerID);
+				preparedStatementAddPlayer.setString(2, playerName);
+				preparedStatementAddPlayer.setString(3, playerID);
+				preparedStatementAddPlayer.setString(4, playerName);
 
-				// Execute statement
-				preparedStmt.execute();
-				preparedStmt.close();
+				preparedStatementAddPlayer.execute();
+				preparedStatementAddPlayer.close();
+
+
+				// Add home to the database
+				String querySetHome = SQLTools.queryReader("set_home.sql");
+				PreparedStatement preparedStatementSetHome = conn.prepareStatement(querySetHome);
+
+				preparedStatementSetHome.setString(1, playerID);
+				preparedStatementSetHome.setDouble(2, x);
+				preparedStatementSetHome.setDouble(3, y);
+				preparedStatementSetHome.setDouble(4, z);
+				preparedStatementSetHome.setDouble(5, pitch);
+				preparedStatementSetHome.setDouble(6, yaw);
+				preparedStatementSetHome.setString(7, worldID);
+
+				preparedStatementSetHome.setString(8, playerID);
+				preparedStatementSetHome.setDouble(9, x);
+				preparedStatementSetHome.setDouble(10, y);
+				preparedStatementSetHome.setDouble(11, z);
+				preparedStatementSetHome.setDouble(12, pitch);
+				preparedStatementSetHome.setDouble(13, yaw);
+				preparedStatementSetHome.setString(14, worldID);
+
+				preparedStatementSetHome.execute();
+				preparedStatementSetHome.close();
+
+
 				main.getLogger().log(Level.INFO, "Succesfully updated home for " + playerName + " (" + playerID+ ")");
 				conn.close();
 				return true;

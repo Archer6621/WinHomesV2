@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
@@ -38,15 +37,31 @@ public class CommandHomeInvite implements CommandExecutor {
 					}
 
 					if (otherPlayer != null) {
-						// Invite player to home
-						String query = SQLTools.queryReader("invite_to_home.sql");
-						PreparedStatement preparedStmt = conn.prepareStatement(query);
-						preparedStmt.setString(1, player.getUniqueId().toString());
-						preparedStmt.setString(2, otherPlayer.getUniqueId().toString());
+						// Ensure both players are added to the database
+						String queryAddPlayer = SQLTools.queryReader("add_player.sql");
+						PreparedStatement preparedStmtAddPlayer = conn.prepareStatement(queryAddPlayer);
+						preparedStmtAddPlayer.setString(1, player.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(2, player.getName());
+						preparedStmtAddPlayer.setString(3, player.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(4, player.getName());
+						preparedStmtAddPlayer.execute();
+						preparedStmtAddPlayer.setString(1, otherPlayer.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(2, otherPlayer.getName());
+						preparedStmtAddPlayer.setString(3, otherPlayer.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(4, otherPlayer.getName());
+						preparedStmtAddPlayer.execute();
+						preparedStmtAddPlayer.close();
 
-						// Execute
-						preparedStmt.execute();
-						preparedStmt.close();
+						// Invite player to home
+						String queryInviteToHome = SQLTools.queryReader("invite_to_home.sql");
+						PreparedStatement preparedStmtInviteToHome = conn.prepareStatement(queryInviteToHome);
+						preparedStmtInviteToHome.setString(1, player.getUniqueId().toString());
+						preparedStmtInviteToHome.setString(2, otherPlayer.getUniqueId().toString());
+						preparedStmtInviteToHome.setString(3, player.getUniqueId().toString());
+						preparedStmtInviteToHome.setString(4, otherPlayer.getUniqueId().toString());
+						preparedStmtInviteToHome.execute();
+						preparedStmtInviteToHome.close();
+
 						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been invited to " + player.getName()+ "'s home!");
 					} else {
 						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " must be online to be invited!");

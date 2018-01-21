@@ -1,5 +1,4 @@
-SELECT invite.player_uuid
-FROM invite
+DELETE invite FROM invite
   JOIN home ON home_uuid=home.player_uuid
   JOIN player ON home.player_uuid=player.uuid
-WHERE player.name=?;
+WHERE home_uuid=? and name=?;

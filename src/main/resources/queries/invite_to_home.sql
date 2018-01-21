@@ -1,1 +1,3 @@
-REPLACE INTO home_invite (home_uuid, uuid) values (?, ?);
+INSERT INTO invite (home_uuid, player_uuid) values (?, ?)
+ON DUPLICATE KEY UPDATE
+  home_uuid=?,player_uuid=?;

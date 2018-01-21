@@ -46,10 +46,10 @@ public class CommandHome implements CommandExecutor {
 					String otherPlayerName = args[0];
 
 					// First perform a query to see whether this player is actually invited to the other's home
-					String query = SQLTools.queryReader("check_home_other.sql");
-					PreparedStatement preparedStmt1 = conn.prepareStatement(query);
-					preparedStmt1.setString(1, otherPlayerName);
-					ResultSet rs1 = preparedStmt1.executeQuery();
+					String queryCheckOtherHome = SQLTools.queryReader("check_home_other.sql");
+					PreparedStatement preparedStmtCheckHomeOther = conn.prepareStatement(queryCheckOtherHome);
+					preparedStmtCheckHomeOther.setString(1, otherPlayerName);
+					ResultSet rs1 = preparedStmtCheckHomeOther.executeQuery();
 					// Iterate over UUID of players invited to the home of the other player
 					boolean invited = false;
 					while (rs1.next()) {
@@ -62,19 +62,19 @@ public class CommandHome implements CommandExecutor {
 
 					// If invited, teleport to that player's home
 					if (invited) {
-						query = SQLTools.queryReader("get_home_other.sql");
-						PreparedStatement preparedStmt2 = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-						preparedStmt2.setString(1, otherPlayerName);
-						ResultSet rs = preparedStmt2.executeQuery();
+						String queryGetHomeOther = SQLTools.queryReader("get_home_other.sql");
+						PreparedStatement preparedStmtGetHomeOther = conn.prepareStatement(queryGetHomeOther);
+						preparedStmtGetHomeOther.setString(1, otherPlayerName);
+						ResultSet rs = preparedStmtGetHomeOther.executeQuery();
 						return teleportPlayer(player, rs);
 					} else {
 						main.getLogger().log(Level.INFO, "Player " + player.getName() + " is not invited to " +otherPlayerName + "'s home");
 					}
 				} else {
-					String query = SQLTools.queryReader("get_home.sql");
-					PreparedStatement preparedStmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-					preparedStmt.setString(1, player.getUniqueId().toString());
-					ResultSet rs = preparedStmt.executeQuery();
+					String queryGetHome = SQLTools.queryReader("get_home.sql");
+					PreparedStatement preparedStmtGetHome = conn.prepareStatement(queryGetHome);
+					preparedStmtGetHome.setString(1, player.getUniqueId().toString());
+					ResultSet rs = preparedStmtGetHome.executeQuery();
 					return teleportPlayer(player, rs);
 				}
 			} catch (SQLException | IOException e) {
@@ -88,18 +88,18 @@ public class CommandHome implements CommandExecutor {
 	private Boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
 		if (rs.next()) {
 			// Attempt to obtain the world if it exists
-			String worldID = rs.getString(8);
+			String worldID = rs.getString(1);
 			World world = getBukkitWorld(worldID);
 			if (world != null) {
 				player.getLocation().setWorld(world);
 
 				// Retrieve location data and put player at home location
 				Location loc = player.getLocation();
-				loc.setX(rs.getDouble(3));
-				loc.setY(rs.getDouble(4));
-				loc.setZ(rs.getDouble(5));
-				loc.setPitch((float) rs.getDouble(6));
-				loc.setYaw((float) rs.getDouble(7));
+				loc.setX(rs.getDouble(2));
+				loc.setY(rs.getDouble(3));
+				loc.setZ(rs.getDouble(4));
+				loc.setPitch((float) rs.getDouble(5));
+				loc.setYaw((float) rs.getDouble(6));
 				player.teleport(loc);
 				main.getLogger().log(Level.INFO, "Teleported player " + player.getPlayerListName() + " to its home.");
 				return true;

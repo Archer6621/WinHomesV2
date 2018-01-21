@@ -81,7 +81,7 @@ public class SQLTools {
 			main.getLogger().log(Level.INFO,"Database successfully initialized!");
 
 		} catch (SQLException e) {
-			main.getLogger().log(Level.WARNING, "Could perform database initialization!");
+			main.getLogger().log(Level.WARNING, "Could not perform database initialization!");
 			main.getLogger().log(Level.WARNING, e.toString());
 		} catch (IOException e) {
 			main.getLogger().log(Level.WARNING, "Could not open initialization query file!");

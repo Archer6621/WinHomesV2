@@ -1,1 +1,1 @@
-SELECT * FROM home WHERE name=?;
+SELECT world,x,y,z,pitch,yaw FROM home JOIN player ON player.uuid=home.player_uuid WHERE player.name=?;

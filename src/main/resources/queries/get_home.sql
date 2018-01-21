@@ -1,1 +1,1 @@
-SELECT * FROM home WHERE uuid=?;
+SELECT world,x,y,z,pitch,yaw FROM home WHERE player_uuid=?;

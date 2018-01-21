@@ -15,3 +15,7 @@ commands:
     description: Invites a player to your home
     usage: /home_invite <player_name>
     aliases: [invitehome, homeinvite]
+  home_uninvite:
+    description: Uninvites a player from your home
+    usage: /home_uninvite <player_name>
+    aliases: [uninvitehome, homeuninvite]
