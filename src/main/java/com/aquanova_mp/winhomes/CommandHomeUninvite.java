@@ -13,6 +13,9 @@ import java.util.logging.Level;
 
 public class CommandHomeUninvite implements CommandExecutor {
 	private WinHomes main;
+	private static final String MESSAGE_PLAYER_UNINVITED = " has been uninvited from your home!";
+	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
+
 
 	public CommandHomeUninvite(WinHomes winhomes) {
 		this.main = winhomes;
@@ -36,12 +39,15 @@ public class CommandHomeUninvite implements CommandExecutor {
 					preparedStmtUninvite.close();
 
 					main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been uninvited from " + player.getName()+ "'s home!");
+					player.sendMessage(otherPlayerName + MESSAGE_PLAYER_UNINVITED);
+					return true;
 				}
 				conn.close();
 			} catch (SQLException | IOException e) {
-				e.printStackTrace();
+				main.commandError(label, args, commandSender.getName(), e);
+				player.sendMessage(MESSAGE_SOMETHING_WENT_WRONG);
 			}
 		}
-		return false;
+		return true;
 	}
 }

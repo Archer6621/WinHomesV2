@@ -15,6 +15,9 @@ import java.util.logging.Level;
 
 public class CommandHomeSet implements CommandExecutor {
 	private WinHomes main;
+	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
+	private static final String MESSAGE_HOME_SET = "Your home has been set to: ";
+
 
 	public CommandHomeSet(WinHomes winhomes) {
 		this.main = winhomes;
@@ -77,14 +80,15 @@ public class CommandHomeSet implements CommandExecutor {
 
 
 				main.getLogger().log(Level.INFO, "Succesfully updated home for " + playerName + " (" + playerID+ ")");
+				player.sendMessage(MESSAGE_HOME_SET + "X:"+x + ", Y:"+y + ", Z:"+z);
 				conn.close();
 				return true;
 			} catch (IOException | SQLException e) {
-				main.getLogger().log(Level.WARNING, "Error executing command " + label + " with args: " + Arrays.toString(args));
-				e.printStackTrace();
+				main.commandError(label, args, player.getName(), e);
+				player.sendMessage(MESSAGE_SOMETHING_WENT_WRONG);
 			}
 		}
 
-		return false;
+		return true;
 	}
 }

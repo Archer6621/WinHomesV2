@@ -13,10 +13,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.logging.Level;
 
 public class CommandHome implements CommandExecutor {
+	private static final String MESSAGE_HOME_DOES_NOT_EXIST = "You have no home yet, set one with /sethome!";
+	private static final String MESSAGE_HOME_WORLD_GONE = "The world this home was in does not exist anymore!";
+	private static final String MESSAGE_TELEPORTING_HOME = "Teleporting you to your home...";
+	private static final String MESSAGE_TELEPORTING_HOME_OTHER = "Teleporting you to the player's home...";
+	private static final String MESSAGE_HOME_UNINVITED = "You are not invited to this player's home!";
+	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
+
+
 	private WinHomes main;
 
 	public CommandHome(WinHomes winhomes) {
@@ -50,6 +57,7 @@ public class CommandHome implements CommandExecutor {
 					PreparedStatement preparedStmtCheckHomeOther = conn.prepareStatement(queryCheckOtherHome);
 					preparedStmtCheckHomeOther.setString(1, otherPlayerName);
 					ResultSet rs1 = preparedStmtCheckHomeOther.executeQuery();
+
 					// Iterate over UUID of players invited to the home of the other player
 					boolean invited = false;
 					while (rs1.next()) {
@@ -66,23 +74,32 @@ public class CommandHome implements CommandExecutor {
 						PreparedStatement preparedStmtGetHomeOther = conn.prepareStatement(queryGetHomeOther);
 						preparedStmtGetHomeOther.setString(1, otherPlayerName);
 						ResultSet rs = preparedStmtGetHomeOther.executeQuery();
-						return teleportPlayer(player, rs);
+						boolean success = teleportPlayer(player, rs);
+						if (success) {
+							player.sendMessage(MESSAGE_TELEPORTING_HOME_OTHER);
+						}
+						return true;
 					} else {
 						main.getLogger().log(Level.INFO, "Player " + player.getName() + " is not invited to " +otherPlayerName + "'s home");
+						player.sendMessage(MESSAGE_HOME_UNINVITED);
 					}
 				} else {
 					String queryGetHome = SQLTools.queryReader("get_home.sql");
 					PreparedStatement preparedStmtGetHome = conn.prepareStatement(queryGetHome);
 					preparedStmtGetHome.setString(1, player.getUniqueId().toString());
 					ResultSet rs = preparedStmtGetHome.executeQuery();
-					return teleportPlayer(player, rs);
+					boolean success = teleportPlayer(player, rs);
+					if (success) {
+						player.sendMessage(MESSAGE_TELEPORTING_HOME);
+					}
+					return true;
 				}
 			} catch (SQLException | IOException e) {
-				main.getLogger().log(Level.WARNING, "Error executing command " + label + " with args: " + Arrays.toString(args));
-				e.printStackTrace();
+				main.commandError(label, args, commandSender.getName(), e);
+				player.sendMessage(MESSAGE_SOMETHING_WENT_WRONG);
 			}
 		}
-		return false;
+		return true;
 	}
 
 	private Boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
@@ -105,11 +122,13 @@ public class CommandHome implements CommandExecutor {
 				return true;
 			} else {
 				main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
+				player.sendMessage(MESSAGE_HOME_WORLD_GONE);
 				return false;
 			}
 
 		} else {
 			main.getLogger().log(Level.INFO, "No home found for player " + player.getName() + " (" + player.getUniqueId().toString() + ")");
+			player.sendMessage(MESSAGE_HOME_DOES_NOT_EXIST);
 			return false;
 		}
 	}

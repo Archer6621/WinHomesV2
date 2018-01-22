@@ -19,3 +19,14 @@ commands:
     description: Uninvites a player from your home
     usage: /home_uninvite <player_name>
     aliases: [uninvitehome, homeuninvite]
+  home_list:
+    description: Shows a list of players invited to your home
+    usage: /home_list
+    aliases: [homelist, listhome]
+  home_ilist:
+    description: Shows a list of homes of other players that you are invited to
+    usage: /home_ilist
+    aliases: [homeilist, ilisthome]
+  home_help:
+    description: Shows a list of the available commands
+    usage: /home_help

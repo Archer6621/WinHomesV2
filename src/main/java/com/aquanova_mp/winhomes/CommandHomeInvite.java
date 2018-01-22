@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class CommandHomeInvite implements CommandExecutor {
+	private static final String MESSAGE_PLAYER_INVITED = " has been invited to your home!";
+	private static final String MESSAGE_PLAYER_OFFLINE = "Player must be online to be invited!";
+	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
 	private WinHomes main;
 
 	public CommandHomeInvite(WinHomes winhomes) {
@@ -29,7 +32,7 @@ public class CommandHomeInvite implements CommandExecutor {
 
 					// Check if the player is online
 					Player otherPlayer = null;
-					for(Player p : main.getServer().getOnlinePlayers()) {
+					for (Player p : main.getServer().getOnlinePlayers()) {
 						if (p.getName().equals(otherPlayerName)) {
 							otherPlayer = p;
 							break;
@@ -62,16 +65,19 @@ public class CommandHomeInvite implements CommandExecutor {
 						preparedStmtInviteToHome.execute();
 						preparedStmtInviteToHome.close();
 
-						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been invited to " + player.getName()+ "'s home!");
+						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been invited to " + player.getName() + "'s home!");
+						player.sendMessage(otherPlayerName + MESSAGE_PLAYER_INVITED);
 					} else {
-						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " must be online to be invited!");
+						main.getLogger().log(Level.INFO, "Attempted to invite player " + otherPlayerName + ", but the player was offline.");
+						player.sendMessage(MESSAGE_PLAYER_OFFLINE);
 					}
 				}
 				conn.close();
 			} catch (SQLException | IOException e) {
-				e.printStackTrace();
+				main.commandError(label, args, commandSender.getName(), e);
+				player.sendMessage(MESSAGE_SOMETHING_WENT_WRONG);
 			}
 		}
-		return false;
+		return true;
 	}
 }
