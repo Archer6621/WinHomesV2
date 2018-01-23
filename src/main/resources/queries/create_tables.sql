@@ -26,7 +26,7 @@ CREATE TABLE invite (
 -- Table: player
 CREATE TABLE player (
     uuid varchar(36) NOT NULL,
-    name varchar(64) NOT NULL,
+    name varchar(64),
     CONSTRAINT player_pk PRIMARY KEY (uuid)
 );
 

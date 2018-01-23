@@ -35,6 +35,7 @@ public class WinHomes extends JavaPlugin {
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.initializeDataBase(this, dataSource);
 		dataSource.setDatabaseName("winhomes");
+		Import.homeSpawnImport(this);
 		this.getCommand("home").setExecutor(new CommandHome(this));
 		this.getCommand("home_set").setExecutor(new CommandHomeSet(this));
 		this.getCommand("home_invite").setExecutor(new CommandHomeInvite(this));
