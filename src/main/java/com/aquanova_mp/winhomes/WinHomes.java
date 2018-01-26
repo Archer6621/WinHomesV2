@@ -1,9 +1,13 @@
 package com.aquanova_mp.winhomes;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.command.Command;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 /**
@@ -11,10 +15,15 @@ import java.util.logging.Level;
  */
 public class WinHomes extends JavaPlugin {
 	private MysqlDataSource dataSource;
+	private HashMap<Pair<Player, Command>, Long> coolDowns;
+
 
 	public MysqlDataSource getDataSource() {
 		return dataSource;
 	}
+
+	public HashMap<Pair<Player, Command>, Long> getCoolDowns() {return coolDowns;}
+
 
 	public void commandError(String label, String[] args, String sender, Exception e) {
 		getLogger().log(Level.WARNING, "Error executing command " + label + " with args: " + Arrays.toString(args) +" for " + sender);
@@ -22,7 +31,6 @@ public class WinHomes extends JavaPlugin {
 	}
 
 	public WinHomes() {
-		// TODO: Add YAML configuration
 		dataSource = new MysqlDataSource();
 		dataSource.setUser("root");
 		dataSource.setPassword("potato");

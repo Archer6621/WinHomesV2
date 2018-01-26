@@ -65,10 +65,10 @@ public class CommandHomeInvite implements CommandExecutor {
 						preparedStmtInviteToHome.execute();
 						preparedStmtInviteToHome.close();
 
-						main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been invited to " + player.getName() + "'s home!");
+						main.getLogger().log(Level.FINE, "Player " + otherPlayerName + " has been invited to " + player.getName() + "'s home!");
 						player.sendMessage(otherPlayerName + MESSAGE_PLAYER_INVITED);
 					} else {
-						main.getLogger().log(Level.INFO, "Attempted to invite player " + otherPlayerName + ", but the player was offline.");
+						main.getLogger().log(Level.FINE, "Attempted to invite player " + otherPlayerName + ", but the player was offline.");
 						player.sendMessage(MESSAGE_PLAYER_OFFLINE);
 					}
 				}

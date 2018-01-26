@@ -79,7 +79,7 @@ public class CommandHomeSet implements CommandExecutor {
 				preparedStatementSetHome.close();
 
 
-				main.getLogger().log(Level.INFO, "Succesfully updated home for " + playerName + " (" + playerID+ ")");
+				main.getLogger().log(Level.FINE, "Succesfully updated home for " + playerName + " (" + playerID+ ") to: " + player.getLocation().toString());
 				player.sendMessage(MESSAGE_HOME_SET + "X:"+x + ", Y:"+y + ", Z:"+z);
 				conn.close();
 				return true;

@@ -7,6 +7,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -22,9 +30,61 @@ public class CommandHome implements CommandExecutor {
 	private static final String MESSAGE_TELEPORTING_HOME_OTHER = "Teleporting you to the player's home...";
 	private static final String MESSAGE_HOME_UNINVITED = "You are not invited to this player's home!";
 	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
+	private static final String MESSAGE_TELEPORT_CANCELLED_MOVE ="Teleportation cancelled because you moved!";
+	private static final String MESSAGE_TELEPORT_CANCELLED_DAMAGE ="Teleportation cancelled because you were damaged!";
+	private static final String MESSAGE_CANCELLING_PREVIOUS_COMMAND ="Cancelling previous teleportation...";
 
 
 	private WinHomes main;
+
+	private class PlayerWarmupCancelListener implements Listener {
+		private final Player player;
+		private final BukkitTask task;
+
+		public PlayerWarmupCancelListener(Player p, BukkitTask t) {
+			player = p;
+			task = t;
+		}
+
+		@EventHandler
+		public void onHit(EntityDamageEvent e) {
+			if (!main.getServer().getScheduler().isQueued(task.getTaskId())) {
+				HandlerList.unregisterAll(this);
+				return;
+			}
+			if (e.getEntity() instanceof Player) {
+				Player p = (Player) e.getEntity();
+				if (p.equals(player)) {
+					player.sendMessage(MESSAGE_TELEPORT_CANCELLED_DAMAGE);
+					task.cancel();
+				}
+			}
+		}
+
+		@EventHandler
+		public void onPlayerMove(PlayerMoveEvent e) {
+			if (!main.getServer().getScheduler().isQueued(task.getTaskId())) {
+				HandlerList.unregisterAll(this);
+				return;
+			}
+			Player p = e.getPlayer();
+			if (p.equals(player)) {
+				player.sendMessage(MESSAGE_TELEPORT_CANCELLED_MOVE);
+				task.cancel();
+			}
+		}
+
+		@EventHandler
+		public void onHomeCommand(PlayerCommandPreprocessEvent e) {
+			Player p = e.getPlayer();
+			String c = e.getMessage();
+			if (p.equals(player) && c.contains("/home")) {
+				player.sendMessage(MESSAGE_CANCELLING_PREVIOUS_COMMAND);
+				HandlerList.unregisterAll(this);
+				task.cancel();
+			}
+		}
+	}
 
 	public CommandHome(WinHomes winhomes) {
 		this.main = winhomes;
@@ -74,13 +134,9 @@ public class CommandHome implements CommandExecutor {
 						PreparedStatement preparedStmtGetHomeOther = conn.prepareStatement(queryGetHomeOther);
 						preparedStmtGetHomeOther.setString(1, otherPlayerName);
 						ResultSet rs = preparedStmtGetHomeOther.executeQuery();
-						boolean success = teleportPlayer(player, rs);
-						if (success) {
-							player.sendMessage(MESSAGE_TELEPORTING_HOME_OTHER);
-						}
-						return true;
+						teleportPlayerWarmup(player, rs, MESSAGE_TELEPORTING_HOME_OTHER);
 					} else {
-						main.getLogger().log(Level.INFO, "Player " + player.getName() + " is not invited to " +otherPlayerName + "'s home");
+						main.getLogger().log(Level.FINE, "Player " + player.getName() + " attempted to telepport to " +otherPlayerName + "'s home but was not invited");
 						player.sendMessage(MESSAGE_HOME_UNINVITED);
 					}
 				} else {
@@ -88,10 +144,7 @@ public class CommandHome implements CommandExecutor {
 					PreparedStatement preparedStmtGetHome = conn.prepareStatement(queryGetHome);
 					preparedStmtGetHome.setString(1, player.getUniqueId().toString());
 					ResultSet rs = preparedStmtGetHome.executeQuery();
-					boolean success = teleportPlayer(player, rs);
-					if (success) {
-						player.sendMessage(MESSAGE_TELEPORTING_HOME);
-					}
+					teleportPlayerWarmup(player, rs, MESSAGE_TELEPORTING_HOME);
 					return true;
 				}
 			} catch (SQLException | IOException e) {
@@ -102,7 +155,26 @@ public class CommandHome implements CommandExecutor {
 		return true;
 	}
 
-	private Boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
+	private void teleportPlayerWarmup(Player player, ResultSet rs, String message) {
+		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
+		BukkitTask task = new BukkitRunnable() {
+			@Override
+			public void run() {
+				boolean success;
+				try {
+					success = teleportPlayer(player, rs);
+					if (success) {
+						player.sendMessage(message);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}.runTaskLater(this.main, 100);
+		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task), main);
+	}
+
+	private boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
 		if (rs.next()) {
 			// Attempt to obtain the world if it exists
 			String worldID = rs.getString(1);
@@ -118,7 +190,7 @@ public class CommandHome implements CommandExecutor {
 				loc.setPitch((float) rs.getDouble(5));
 				loc.setYaw((float) rs.getDouble(6));
 				player.teleport(loc);
-				main.getLogger().log(Level.INFO, "Teleported player " + player.getPlayerListName() + " to its home.");
+				main.getLogger().log(Level.FINE, "Teleported player " + player.getPlayerListName() + " to its home.");
 				return true;
 			} else {
 				main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
@@ -127,7 +199,7 @@ public class CommandHome implements CommandExecutor {
 			}
 
 		} else {
-			main.getLogger().log(Level.INFO, "No home found for player " + player.getName() + " (" + player.getUniqueId().toString() + ")");
+			main.getLogger().log(Level.FINE, "No home found for player " + player.getName() + " (" + player.getUniqueId().toString() + ")");
 			player.sendMessage(MESSAGE_HOME_DOES_NOT_EXIST);
 			return false;
 		}

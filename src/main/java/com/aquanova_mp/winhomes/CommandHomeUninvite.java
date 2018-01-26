@@ -38,7 +38,7 @@ public class CommandHomeUninvite implements CommandExecutor {
 					preparedStmtUninvite.execute();
 					preparedStmtUninvite.close();
 
-					main.getLogger().log(Level.INFO, "Player " + otherPlayerName + " has been uninvited from " + player.getName()+ "'s home!");
+					main.getLogger().log(Level.FINE, "Player " + otherPlayerName + " has been uninvited from " + player.getName()+ "'s home!");
 					player.sendMessage(otherPlayerName + MESSAGE_PLAYER_UNINVITED);
 					return true;
 				}
