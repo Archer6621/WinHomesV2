@@ -19,15 +19,6 @@ import java.util.logging.Level;
 public class SQLTools {
 
 	/**
-	 * QueryException is used during query substitution, if the amount of substitution parameters doesn't match the substitutions characters in the query
-	 */
-	public static class QueryException extends Exception {
-		public QueryException(String message) {
-			super(message);
-		}
-	}
-
-	/**
 	 * Reads a query file from the query folder.
 	 *
 	 * @param queryFileName the file name of the query file

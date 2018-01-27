@@ -1,5 +1,7 @@
 package com.aquanova_mp.winhomes;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,12 +13,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class CommandHomeSet implements CommandExecutor {
 	private WinHomes main;
 	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
-	private static final String MESSAGE_HOME_SET = "Your home has been set to: ";
+	private static final String MESSAGE_HOME_SET = "Your home has been set to X:%.1f Y:%.1f Z:%.1f";
+	private static final String MESSAGE_HOME_SET_COOLDOWN = "You need to wait %d seconds before you can set your home again.";
 
 
 	public CommandHomeSet(WinHomes winhomes) {
@@ -27,6 +33,17 @@ public class CommandHomeSet implements CommandExecutor {
 	public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
 		if (commandSender instanceof Player){
 			Player player = (Player) commandSender;
+			ImmutablePair<UUID, Command> playerCommand = new ImmutablePair<>(player.getUniqueId(), command);
+			if (main.getCommandCoolDowns().containsKey(playerCommand)) {
+				Date timeStamp = main.getCommandCoolDowns().get(playerCommand);
+				long diffInSeconds = TimeUnit.MILLISECONDS.toSeconds ((new Date()).getTime() - timeStamp.getTime());
+				long delay = main.getConfig().getLong("set_home_cooldown");
+				if (diffInSeconds < delay) {
+					player.sendMessage(String.format(MESSAGE_HOME_SET_COOLDOWN, delay-diffInSeconds));
+					return true;
+				}
+			}
+			main.getCommandCoolDowns().put(playerCommand, new Date() );
 
 			// Get player properties required to set the home
 			String playerID = player.getUniqueId().toString();
@@ -80,7 +97,7 @@ public class CommandHomeSet implements CommandExecutor {
 
 
 				main.getLogger().log(Level.FINE, "Succesfully updated home for " + playerName + " (" + playerID+ ") to: " + player.getLocation().toString());
-				player.sendMessage(MESSAGE_HOME_SET + "X:"+x + ", Y:"+y + ", Z:"+z);
+				player.sendMessage(String.format(MESSAGE_HOME_SET, x, y, z));
 				conn.close();
 				return true;
 			} catch (IOException | SQLException e) {

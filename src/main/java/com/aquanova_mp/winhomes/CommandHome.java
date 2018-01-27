@@ -157,6 +157,7 @@ public class CommandHome implements CommandExecutor {
 
 	private void teleportPlayerWarmup(Player player, ResultSet rs, String message) {
 		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
+		long delay = main.getConfig().getLong("home_warmup");
 		BukkitTask task = new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -170,7 +171,7 @@ public class CommandHome implements CommandExecutor {
 					e.printStackTrace();
 				}
 			}
-		}.runTaskLater(this.main, 100);
+		}.runTaskLater(this.main, 20 * delay);
 		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task), main);
 	}
 

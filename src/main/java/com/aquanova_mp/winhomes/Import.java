@@ -1,7 +1,5 @@
 package com.aquanova_mp.winhomes;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -15,19 +13,26 @@ import java.util.logging.Level;
 
 public class Import {
 	public static void homeSpawnImport(WinHomes main) {
-		String homeSpawnPath = main.getDataFolder().getPath().replace(main.getName(),"")+"HomeSpawn"+ File.separator+"PlayerData"+File.separator;
+		String homeSpawnPath = main.getDataFolder().getPath().replace(main.getName(), "") + "HomeSpawn" + File.separator + "PlayerData" + File.separator;
 		File homeDir = new File(homeSpawnPath);
 
 		File[] files = homeDir.listFiles();
+		if (files == null) {
+			main.getLogger().log(Level.WARNING, "Could not find any files in the HomeSpawn home folder!");
+			return;
+		}
 		int count = 0;
-		for (File file : files) {
-			String playerID = file.getName().replace(".yml","");
-			YamlConfiguration config = new YamlConfiguration();
-			Connection conn = null;
-			try {
+		Connection conn = null;
+		try {
+			conn = main.getDataSource().getConnection();
+			for (File file : files) {
+				String playerID = file.getName().replace(".yml", "");
+				YamlConfiguration config = new YamlConfiguration();
+
+
 				config.load(file);
-				if (config.get("Homes.Home")==null) {
-					main.getLogger().log(Level.WARNING, "Skipping invalid home: "+config.saveToString().replace("\n"," "));
+				if (config.get("Homes.Home") == null) {
+					main.getLogger().log(Level.WARNING, "Skipping invalid home: " + config.saveToString().replace("\n", " "));
 					continue;
 				}
 
@@ -40,7 +45,7 @@ public class Import {
 				double yaw = home.getYaw();
 				String worldID = home.getWorld().getUID().toString();
 
-				conn = main.getDataSource().getConnection();
+
 				String queryAddPlayer = SQLTools.queryReader("add_player.sql");
 				PreparedStatement preparedStmtAddPlayer = conn.prepareStatement(queryAddPlayer);
 				preparedStmtAddPlayer.setString(1, playerID);
@@ -74,19 +79,21 @@ public class Import {
 				preparedStatementSetHome.close();
 
 
-				main.getLogger().log(Level.INFO, String.format("Importing home (%3d): %s, %f, %f, %f, %f, %f, %s",count,playerID,x,y,z,pitch,yaw,worldID));
-				count+=1;
+				main.getLogger().log(Level.INFO, String.format("Importing home (%3d): %s, %f, %f, %f, %f, %f, %s", count, playerID, x, y, z, pitch, yaw, worldID));
+				count += 1;
 
-			} catch (IOException | InvalidConfigurationException | SQLException e) {
-				e.printStackTrace();
 			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+		} catch (InvalidConfigurationException | SQLException | IOException e) {
+			e.printStackTrace();
+		}
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				main.getLogger().log(Level.WARNING, e.getMessage());
 			}
 		}
+		main.getConfig().set("perform_import", false);
+		main.saveConfig();
 	}
 }
