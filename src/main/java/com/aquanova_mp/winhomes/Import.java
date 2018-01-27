@@ -85,12 +85,14 @@ public class Import {
 			}
 		} catch (InvalidConfigurationException | SQLException | IOException e) {
 			e.printStackTrace();
+			return;
 		}
 		if (conn != null) {
 			try {
 				conn.close();
 			} catch (SQLException e) {
 				main.getLogger().log(Level.WARNING, e.getMessage());
+				return;
 			}
 		}
 		main.getConfig().set("perform_import", false);
