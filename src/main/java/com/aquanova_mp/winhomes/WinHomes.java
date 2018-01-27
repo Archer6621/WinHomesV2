@@ -2,11 +2,19 @@ package com.aquanova_mp.winhomes;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,6 +86,30 @@ public class WinHomes extends JavaPlugin {
 		this.getCommand("home_list").setExecutor(new CommandHomeList(this));
 		this.getCommand("home_ilist").setExecutor(new CommandHomeIList(this));
 		this.getCommand("home_help").setExecutor(new CommandHomeHelp(this));
+
+		// Add player join listener for adding them to the db
+		{
+			WinHomes plugin = this;
+			Bukkit.getPluginManager().registerEvents(new Listener() {
+				@EventHandler
+				public void onPlayerJoin(PlayerJoinEvent event) {
+					Player player = event.getPlayer();
+					try (Connection conn = plugin.getDataSource().getConnection()) {
+						String queryAddPlayer = SQLTools.queryReader("add_player.sql");
+						PreparedStatement preparedStmtAddPlayer = conn.prepareStatement(queryAddPlayer);
+						preparedStmtAddPlayer.setString(1, player.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(2, player.getName());
+						preparedStmtAddPlayer.setString(3, player.getUniqueId().toString());
+						preparedStmtAddPlayer.setString(4, player.getName());
+						preparedStmtAddPlayer.execute();
+						preparedStmtAddPlayer.close();
+						plugin.getLogger().log(Level.INFO, "Player added to database: " + player.getName() + ":" + player.getUniqueId().toString());
+					} catch (SQLException | IOException e) {
+						plugin.getLogger().log(Level.WARNING, e.getMessage());
+					}
+				}
+			}, plugin);
+		}
 	}
 
 	@Override
