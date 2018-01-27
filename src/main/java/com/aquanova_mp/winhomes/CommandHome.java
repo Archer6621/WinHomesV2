@@ -187,10 +187,9 @@ public class CommandHome implements CommandExecutor {
 			String worldID = rs.getString(1);
 			World world = getBukkitWorld(worldID);
 			if (world != null) {
-				player.getLocation().setWorld(world);
-
 				// Retrieve location data and put player at home location
 				Location loc = player.getLocation();
+				loc.setWorld(world);
 				loc.setX(rs.getDouble(2));
 				loc.setY(rs.getDouble(3));
 				loc.setZ(rs.getDouble(4));
