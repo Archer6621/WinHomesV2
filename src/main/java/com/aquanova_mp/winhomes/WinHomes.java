@@ -42,23 +42,30 @@ public class WinHomes extends JavaPlugin {
 
 		// Configuration setup
 		FileConfiguration config = this.getConfig();
+		config.addDefault("db_name", "name_of_db");
+		config.addDefault("db_prefix", "prefix");
 		config.addDefault("db_user", "root");
 		config.addDefault("db_pw", "password");
 		config.addDefault("db_server", "localhost");
+		config.addDefault("db_is_initialized", false);
 		config.addDefault("perform_import", true);
 		config.addDefault("home_warmup", 5);
 		config.addDefault("set_home_cooldown", 300);
+		config.addDefault("warmup_movement_threshold", 5);
 		config.options().copyDefaults(true);
 		saveConfig();
 
 		// Load config
+		dataSource.setDatabaseName(config.getString("db_name"));
 		dataSource.setUser(config.getString("db_user"));
 		dataSource.setPassword(config.getString("db_pw"));
 		dataSource.setServerName(config.getString("db_server"));
 
 		getLogger().log(Level.INFO,"Hello World!");
-		SQLTools.initializeDataBase(this, dataSource);
-		dataSource.setDatabaseName("winhomes");
+		SQLTools.setPrefix(config.getString("db_prefix"));
+		if (!config.getBoolean("db_is_initialized")) {
+			config.set("db_is_initialized", SQLTools.initializeDataBase(this));
+		}
 		if (config.getBoolean("perform_import")) {
 			Import.homeSpawnImport(this);
 		}

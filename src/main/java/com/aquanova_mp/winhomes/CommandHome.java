@@ -30,7 +30,7 @@ public class CommandHome implements CommandExecutor {
 	private static final String MESSAGE_TELEPORTING_HOME_OTHER = "Teleporting you to the player's home...";
 	private static final String MESSAGE_HOME_UNINVITED = "You are not invited to this player's home!";
 	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
-	private static final String MESSAGE_TELEPORT_CANCELLED_MOVE ="Teleportation cancelled because you moved!";
+	private static final String MESSAGE_TELEPORT_CANCELLED_MOVE ="Teleportation cancelled because you moved too much!";
 	private static final String MESSAGE_TELEPORT_CANCELLED_DAMAGE ="Teleportation cancelled because you were damaged!";
 	private static final String MESSAGE_CANCELLING_PREVIOUS_COMMAND ="Cancelling previous teleportation...";
 
@@ -40,10 +40,14 @@ public class CommandHome implements CommandExecutor {
 	private class PlayerWarmupCancelListener implements Listener {
 		private final Player player;
 		private final BukkitTask task;
+		private final Location startLoc;
+		private final double movementThreshold;
 
-		public PlayerWarmupCancelListener(Player p, BukkitTask t) {
+		public PlayerWarmupCancelListener(Player p, BukkitTask t, double mT) {
 			player = p;
 			task = t;
+			movementThreshold = mT;
+			startLoc = player.getLocation();
 		}
 
 		@EventHandler
@@ -69,8 +73,10 @@ public class CommandHome implements CommandExecutor {
 			}
 			Player p = e.getPlayer();
 			if (p.equals(player)) {
-				player.sendMessage(MESSAGE_TELEPORT_CANCELLED_MOVE);
-				task.cancel();
+				if (startLoc.distance(player.getLocation()) > movementThreshold) {
+					player.sendMessage(MESSAGE_TELEPORT_CANCELLED_MOVE);
+					task.cancel();
+				}
 			}
 		}
 
@@ -172,7 +178,7 @@ public class CommandHome implements CommandExecutor {
 				}
 			}
 		}.runTaskLater(this.main, 20 * delay);
-		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task), main);
+		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
 	}
 
 	private boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {

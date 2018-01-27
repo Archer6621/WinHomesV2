@@ -1,8 +1,6 @@
 -- Created by Vertabelo (http://vertabelo.com)
 -- Last modification date: 2018-01-21 01:29:46.441
 
-USE winhomes;
-
 -- tables
 -- Table: home
 CREATE TABLE home (

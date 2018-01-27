@@ -17,6 +17,11 @@ import java.util.logging.Level;
  * This class contains several tools for interacting with the database and related matters
  */
 public class SQLTools {
+	private static String prefix;
+
+	public static void setPrefix(String p) {
+		prefix = p;
+	}
 
 	/**
 	 * Reads a query file from the query folder.
@@ -34,49 +39,32 @@ public class SQLTools {
 			str.append(line);
 			str.append("\n");
 		}
-		return str.toString();
+		String res = str.toString();
+		for (String postfix : new String[]{"."," ", "\n"}) {
+			for (String table : new String[]{"player","home","invite"})
+			res = res.replace(table+postfix, prefix + "_" + table+postfix);
+		}
+		return res;
 	}
 
-	public static void initializeDataBase(WinHomes main, MysqlDataSource dataSource) {
+	public static boolean initializeDataBase(WinHomes main) {
 		try {
-			Connection conn = dataSource.getConnection();
+			Connection conn = main.getDataSource().getConnection();
 
-			// Check whether winhomes database already exists
-			ResultSet resultSet = conn.getMetaData().getCatalogs();
-			boolean exists = false;
-			// Iterate through catalog to find the database names
-			while (resultSet.next()) {
-				String databaseName = resultSet.getString(1); // Database name is at the first position
-				if (databaseName.equals("winhomes")) {
-					exists = true;
-					main.getLogger().log(Level.INFO,"winhomes database found, continuing...");
-				}
-			}
-			resultSet.close();
-
-			// Create the database if it was not present, along with the tables
+			// Initialize tables for database
 			Statement stmt = conn.createStatement();
-			if (!exists) {
-				main.getLogger().log(Level.INFO,"winhomes database not found, creating it!");
-
-				stmt.executeUpdate("CREATE DATABASE winhomes;");
-
-				// Load the query with the create statements for the tables
-				String query = SQLTools.queryReader("create_tables.sql");
-				ResultSet rs = stmt.executeQuery(query);
-				rs.close();
-			}
-
+			String query = SQLTools.queryReader("create_tables.sql");
+			ResultSet rs = stmt.executeQuery(query);
+			rs.close();
 			stmt.close();
 			conn.close();
 			main.getLogger().log(Level.INFO,"Database successfully initialized!");
+			return true;
 
-		} catch (SQLException e) {
+		} catch (SQLException | IOException e) {
 			main.getLogger().log(Level.WARNING, "Could not perform database initialization!");
 			main.getLogger().log(Level.WARNING, e.toString());
-		} catch (IOException e) {
-			main.getLogger().log(Level.WARNING, "Could not open initialization query file!");
-			main.getLogger().log(Level.WARNING, e.toString());
 		}
+		return false;
 	}
 }

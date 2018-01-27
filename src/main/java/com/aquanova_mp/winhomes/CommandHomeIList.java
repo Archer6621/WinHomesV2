@@ -42,7 +42,9 @@ public class CommandHomeIList implements CommandExecutor {
 					str.append(name);
 					str.append(", ");
 				}
-				str.delete(str.length()-2,str.length());
+				if (str.length()>2) {
+					str.delete(str.length() - 2, str.length());
+				}
 				main.getLogger().log(Level.FINE, "Printed invite list for " + player.getName() );
 				player.sendMessage(MESSAGE_INVITE_LIST);
 				player.sendMessage(str.toString());
