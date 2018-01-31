@@ -13,9 +13,10 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class CommandHomeInvite implements CommandExecutor {
-	private static final String MESSAGE_PLAYER_INVITED = " has been invited to your home!";
+	private static final String MESSAGE_PLAYER_INVITED = "%s has been invited to your home!";
 	private static final String MESSAGE_PLAYER_ONLINE_ONCE = "Player must have been online at least once to be invited!";
 	private static final String MESSAGE_SOMETHING_WENT_WRONG = "Something went wrong, please let the admin know!";
+	private static final String MESSAGE_INVITED_TO_HOME = "You've been invited to %s's home!";
 	private WinHomes main;
 
 	public CommandHomeInvite(WinHomes winhomes) {
@@ -57,7 +58,15 @@ public class CommandHomeInvite implements CommandExecutor {
 					preparedStmtInviteToHome.close();
 
 					main.getLogger().log(Level.FINE, "Player " + otherPlayerName + " has been invited to " + player.getName() + "'s home!");
-					player.sendMessage(otherPlayerName + MESSAGE_PLAYER_INVITED);
+					player.sendMessage(String.format(MESSAGE_PLAYER_INVITED, otherPlayerName));
+
+					// Notify player of invite if he is online
+					for (Player p : main.getServer().getOnlinePlayers()) {
+						if (p.getName().equals(otherPlayerName)) {
+							p.sendMessage(String.format(MESSAGE_INVITED_TO_HOME, player.getName()));
+							break;
+						}
+					}
 				}
 			} catch (SQLException | IOException e) {
 				main.commandError(label, args, commandSender.getName(), e);
