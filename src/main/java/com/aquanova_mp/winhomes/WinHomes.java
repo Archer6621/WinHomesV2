@@ -76,9 +76,11 @@ public class WinHomes extends JavaPlugin {
 		SQLTools.setPrefix(config.getString("db_prefix"));
 		if (!config.getBoolean("db_is_initialized")) {
 			config.set("db_is_initialized", SQLTools.initializeDataBase(this));
+			saveConfig();
 		}
 		if (config.getBoolean("perform_import")) {
-			Import.homeSpawnImport(this);
+			config.set("perform_import", !Import.homeSpawnImport(this));
+			saveConfig();
 		}
 
 		// Commands
@@ -124,6 +126,5 @@ public class WinHomes extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		getLogger().log(Level.INFO,"Bye World...");
-		saveConfig();
 	}
 }

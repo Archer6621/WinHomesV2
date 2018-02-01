@@ -12,19 +12,17 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class Import {
-	public static void homeSpawnImport(WinHomes main) {
+	public static boolean homeSpawnImport(WinHomes main) {
 		String homeSpawnPath = main.getDataFolder().getPath().replace(main.getName(), "") + "HomeSpawn" + File.separator + "PlayerData" + File.separator;
 		File homeDir = new File(homeSpawnPath);
 
 		File[] files = homeDir.listFiles();
 		if (files == null) {
 			main.getLogger().log(Level.WARNING, "Could not find any files in the HomeSpawn home folder!");
-			return;
+			return false;
 		}
 		int count = 0;
-		Connection conn = null;
-		try {
-			conn = main.getDataSource().getConnection();
+		try (Connection conn = main.getDataSource().getConnection()) {
 			for (File file : files) {
 				String playerID = file.getName().replace(".yml", "");
 				YamlConfiguration config = new YamlConfiguration();
@@ -85,17 +83,8 @@ public class Import {
 			}
 		} catch (InvalidConfigurationException | SQLException | IOException e) {
 			e.printStackTrace();
-			return;
+			return false;
 		}
-		if (conn != null) {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-				main.getLogger().log(Level.WARNING, e.getMessage());
-				return;
-			}
-		}
-		main.getConfig().set("perform_import", false);
-		main.saveConfig();
+		return true;
 	}
 }

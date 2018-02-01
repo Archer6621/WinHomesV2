@@ -25,8 +25,8 @@ public class CommandHomeUninvite implements CommandExecutor {
 	public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
 		if (commandSender instanceof Player) {
 			Player player = (Player) commandSender;
-			try {
-				Connection conn = main.getDataSource().getConnection();
+			try (Connection conn = main.getDataSource().getConnection()) {
+
 				if (args.length > 0) {
 					String otherPlayerName = args[0];
 
@@ -42,7 +42,6 @@ public class CommandHomeUninvite implements CommandExecutor {
 					player.sendMessage(otherPlayerName + MESSAGE_PLAYER_UNINVITED);
 					return true;
 				}
-				conn.close();
 			} catch (SQLException | IOException e) {
 				main.commandError(label, args, commandSender.getName(), e);
 				player.sendMessage(MESSAGE_SOMETHING_WENT_WRONG);

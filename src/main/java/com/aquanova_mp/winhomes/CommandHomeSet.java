@@ -56,8 +56,7 @@ public class CommandHomeSet implements CommandExecutor {
 			String worldID = player.getWorld().getUID().toString();
 
 			// Prepare and execute SQL statements
-			try {
-				Connection conn = main.getDataSource().getConnection();
+			try (Connection conn = main.getDataSource().getConnection()) {
 
 				// Add the player to the database
 				String queryAddPlayer = SQLTools.queryReader("add_player.sql");
@@ -98,7 +97,6 @@ public class CommandHomeSet implements CommandExecutor {
 
 				main.getLogger().log(Level.FINE, "Succesfully updated home for " + playerName + " (" + playerID+ ") to: " + player.getLocation().toString());
 				player.sendMessage(String.format(MESSAGE_HOME_SET, x, y, z));
-				conn.close();
 				return true;
 			} catch (IOException | SQLException e) {
 				main.commandError(label, args, player.getName(), e);

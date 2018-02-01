@@ -26,8 +26,7 @@ public class CommandHomeIList implements CommandExecutor {
 		if (commandSender instanceof Player) {
 			Player player = (Player) commandSender;
 
-			try {
-				Connection conn = main.getDataSource().getConnection();
+			try (Connection conn = main.getDataSource().getConnection()) {
 
 				// Fetch invited UUIDs
 				String queryCheckOtherHome = SQLTools.queryReader("invite_list.sql");

@@ -47,20 +47,17 @@ public class SQLTools {
 		return res;
 	}
 
-	public static boolean initializeDataBase(WinHomes main) {
-		try {
-			Connection conn = main.getDataSource().getConnection();
 
+	public static boolean initializeDataBase(WinHomes main) {
+		try (Connection conn = main.getDataSource().getConnection()) {
 			// Initialize tables for database
 			Statement stmt = conn.createStatement();
 			String query = SQLTools.queryReader("create_tables.sql");
 			ResultSet rs = stmt.executeQuery(query);
 			rs.close();
 			stmt.close();
-			conn.close();
 			main.getLogger().log(Level.INFO,"Database successfully initialized!");
 			return true;
-
 		} catch (SQLException | IOException e) {
 			main.getLogger().log(Level.WARNING, "Could not perform database initialization!");
 			main.getLogger().log(Level.WARNING, e.toString());
