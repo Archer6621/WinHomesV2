@@ -74,7 +74,6 @@ public class WinHomes extends JavaPlugin {
 
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.setPrefix(config.getString("db_prefix"));
-		// TODO: Something here is broken, it will somehow still try to initialize even though the value is_initialized is true
 		if (!config.getBoolean("db_is_initialized")) {
 			config.set("db_is_initialized", SQLTools.initializeDataBase(this));
 		}
