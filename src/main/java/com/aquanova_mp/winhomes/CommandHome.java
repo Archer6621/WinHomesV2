@@ -139,20 +139,26 @@ public class CommandHome implements CommandExecutor {
 						PreparedStatement preparedStmtGetHomeOther = conn.prepareStatement(queryGetHomeOther);
 						preparedStmtGetHomeOther.setString(1, otherPlayerName);
 						ResultSet rs = preparedStmtGetHomeOther.executeQuery();
-						teleportPlayerWarmup(player, rs, MESSAGE_TELEPORTING_HOME_OTHER);
-						preparedStmtGetHomeOther.close();
+						Location loc = getLocationFromResultSet(player, rs);
+						if (loc != null) {
+							teleportPlayerWarmup(player, loc, MESSAGE_TELEPORTING_HOME_OTHER);
+						}
+						rs.close();
 					} else {
 						main.getLogger().log(Level.FINE, "Player " + player.getName() + " attempted to telepport to " +otherPlayerName + "'s home but was not invited");
 						player.sendMessage(MESSAGE_HOME_UNINVITED);
 					}
 				} else {
+					// If no argument was given, teleport to own home
 					String queryGetHome = SQLTools.queryReader("get_home.sql");
 					PreparedStatement preparedStmtGetHome = conn.prepareStatement(queryGetHome);
 					preparedStmtGetHome.setString(1, player.getUniqueId().toString());
 					ResultSet rs = preparedStmtGetHome.executeQuery();
-					teleportPlayerWarmup(player, rs, MESSAGE_TELEPORTING_HOME);
-					preparedStmtGetHome.close();
-					return true;
+					Location loc = getLocationFromResultSet(player, rs);
+					if (loc != null) {
+						teleportPlayerWarmup(player, loc, MESSAGE_TELEPORTING_HOME);
+					}
+					rs.close();
 				}
 			} catch (SQLException | IOException e) {
 				main.commandError(label, args, commandSender.getName(), e);
@@ -162,29 +168,8 @@ public class CommandHome implements CommandExecutor {
 		return true;
 	}
 
-	private void teleportPlayerWarmup(Player player, ResultSet rs, String message) {
-		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
-		long delay = main.getConfig().getLong("home_warmup");
-		BukkitTask task = new BukkitRunnable() {
-			@Override
-			public void run() {
-				boolean success;
-				try {
-					success = teleportPlayer(player, rs);
-					if (success) {
-						player.sendMessage(message);
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		}.runTaskLater(this.main, 20 * delay);
-		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
-	}
-
-	private boolean teleportPlayer(Player player, ResultSet rs) throws SQLException {
+	private Location getLocationFromResultSet(Player player, ResultSet rs) throws SQLException {
 		if (rs.next()) {
-			// Attempt to obtain the world if it exists
 			String worldID = rs.getString(1);
 			World world = getBukkitWorld(worldID);
 			if (world != null) {
@@ -196,22 +181,32 @@ public class CommandHome implements CommandExecutor {
 				loc.setZ(rs.getDouble(4));
 				loc.setPitch((float) rs.getDouble(5));
 				loc.setYaw((float) rs.getDouble(6));
-				player.teleport(loc);
-				main.getLogger().log(Level.FINE, "Teleported player " + player.getPlayerListName() + " to its home.");
-				rs.close();
-				return true;
+				return loc;
 			} else {
 				main.getLogger().log(Level.WARNING, "World with ID " + worldID + " does not exist!");
 				player.sendMessage(MESSAGE_HOME_WORLD_GONE);
 				rs.close();
-				return false;
 			}
-
-		} else {
+		}  else {
 			main.getLogger().log(Level.FINE, "No home found for player " + player.getName() + " (" + player.getUniqueId().toString() + ")");
 			player.sendMessage(MESSAGE_HOME_DOES_NOT_EXIST);
 			rs.close();
-			return false;
 		}
+		return null;
+	}
+
+
+	private void teleportPlayerWarmup(Player player, Location loc, String message) {
+		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
+		long delay = main.getConfig().getLong("home_warmup");
+		BukkitTask task = new BukkitRunnable() {
+			@Override
+			public void run() {
+				player.teleport(loc);
+				player.sendMessage(message);
+				main.getLogger().log(Level.FINE, "Teleported player " + player.getPlayerListName() + " to the designated home.");
+			}
+		}.runTaskLater(this.main, 20 * delay);
+		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
 	}
 }
