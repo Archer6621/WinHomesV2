@@ -40,7 +40,7 @@ public class SQLTools {
 			str.append("\n");
 		}
 		String res = str.toString();
-		for (String postfix : new String[]{"."," ", "\n"}) {
+		for (String postfix : new String[]{"."," ", "\n", ";"}) {
 			for (String table : new String[]{"player","home","invite"})
 			res = res.replace(table+postfix, prefix + "_" + table+postfix);
 		}

@@ -4,6 +4,8 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +20,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -71,6 +74,7 @@ public class WinHomes extends JavaPlugin {
 
 		getLogger().log(Level.INFO,"Hello World!");
 		SQLTools.setPrefix(config.getString("db_prefix"));
+		// TODO: Something here is broken, it will somehow still try to initialize even though the value is_initialized is true
 		if (!config.getBoolean("db_is_initialized")) {
 			config.set("db_is_initialized", SQLTools.initializeDataBase(this));
 		}
@@ -107,6 +111,12 @@ public class WinHomes extends JavaPlugin {
 					} catch (SQLException | IOException e) {
 						plugin.getLogger().log(Level.WARNING, e.getMessage());
 					}
+
+					// Update AutoComplete
+					PlayerListTabCompleter pltc = new PlayerListTabCompleter(plugin);
+					plugin.getCommand("home").setTabCompleter(pltc);
+					plugin.getCommand("home_invite").setTabCompleter(pltc);
+					plugin.getCommand("home_uninvite").setTabCompleter(pltc);
 				}
 			}, plugin);
 		}
