@@ -33,6 +33,8 @@ public class CommandHome implements CommandExecutor {
 	private static final String MESSAGE_TELEPORT_CANCELLED_MOVE ="Teleportation cancelled because you moved too much!";
 	private static final String MESSAGE_TELEPORT_CANCELLED_DAMAGE ="Teleportation cancelled because you were damaged!";
 	private static final String MESSAGE_CANCELLING_PREVIOUS_COMMAND ="Cancelling previous teleportation...";
+	
+	private static final String ADMIN_PERMISSION = "winhomes.admin";
 
 
 	private WinHomes main;
@@ -124,12 +126,14 @@ public class CommandHome implements CommandExecutor {
 					ResultSet rs1 = preparedStmtCheckHomeOther.executeQuery();
 
 					// Iterate over UUID of players invited to the home of the other player
-					boolean invited = false;
-					while (rs1.next()) {
-						String uuid = rs1.getString(1);
-						if (uuid.equals(player.getUniqueId().toString())) {
-							invited = true;
-							break;
+					boolean invited = player.hasPermission(ADMIN_PERMISSION);
+					if(!invited) {
+						while (rs1.next()) {
+							String uuid = rs1.getString(1);
+							if (uuid.equals(player.getUniqueId().toString())) {
+								invited = true;
+								break;
+							}
 						}
 					}
 
