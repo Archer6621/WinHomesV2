@@ -33,6 +33,8 @@ public class CommandHome implements CommandExecutor {
 	private static final String MESSAGE_TELEPORT_CANCELLED_MOVE ="Teleportation cancelled because you moved too much!";
 	private static final String MESSAGE_TELEPORT_CANCELLED_DAMAGE ="Teleportation cancelled because you were damaged!";
 	private static final String MESSAGE_CANCELLING_PREVIOUS_COMMAND ="Cancelling previous teleportation...";
+	
+	private static final String ADMIN_PERMISSION = "winhomes.admin";
 
 
 	private WinHomes main;
@@ -124,12 +126,14 @@ public class CommandHome implements CommandExecutor {
 					ResultSet rs1 = preparedStmtCheckHomeOther.executeQuery();
 
 					// Iterate over UUID of players invited to the home of the other player
-					boolean invited = false;
-					while (rs1.next()) {
-						String uuid = rs1.getString(1);
-						if (uuid.equals(player.getUniqueId().toString())) {
-							invited = true;
-							break;
+					boolean invited = player.hasPermission(ADMIN_PERMISSION);
+					if(!invited) {
+						while (rs1.next()) {
+							String uuid = rs1.getString(1);
+							if (uuid.equals(player.getUniqueId().toString())) {
+								invited = true;
+								break;
+							}
 						}
 					}
 
@@ -197,8 +201,12 @@ public class CommandHome implements CommandExecutor {
 
 
 	private void teleportPlayerWarmup(Player player, Location loc, String message) {
-		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
-		long delay = main.getConfig().getLong("home_warmup");
+		boolean isAdmin = player.hasPermission(ADMIN_PERMISSION);
+		if(!isAdmin)
+			player.sendMessage("Warming up teleportation device, wait 5 seconds...");
+
+		long delay = isAdmin ? 0 : main.getConfig().getLong("home_warmup");
+
 		BukkitTask task = new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -207,6 +215,8 @@ public class CommandHome implements CommandExecutor {
 				main.getLogger().log(Level.FINE, "Teleported player " + player.getPlayerListName() + " to the designated home.");
 			}
 		}.runTaskLater(this.main, 20 * delay);
-		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
+
+		if(!isAdmin)
+			main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
 	}
 }
