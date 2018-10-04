@@ -201,8 +201,12 @@ public class CommandHome implements CommandExecutor {
 
 
 	private void teleportPlayerWarmup(Player player, Location loc, String message) {
-		player.sendMessage("Warming up teleportation device, wait 5 seconds...");
-		long delay = main.getConfig().getLong("home_warmup");
+		boolean isAdmin = player.hasPermission(ADMIN_PERMISSION);
+		if(!isAdmin)
+			player.sendMessage("Warming up teleportation device, wait 5 seconds...");
+
+		long delay = isAdmin ? 0 : main.getConfig().getLong("home_warmup");
+
 		BukkitTask task = new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -211,6 +215,8 @@ public class CommandHome implements CommandExecutor {
 				main.getLogger().log(Level.FINE, "Teleported player " + player.getPlayerListName() + " to the designated home.");
 			}
 		}.runTaskLater(this.main, 20 * delay);
-		main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
+
+		if(!isAdmin)
+			main.getServer().getPluginManager().registerEvents(new PlayerWarmupCancelListener(player, task, main.getConfig().getDouble("warmup_movement_threshold")), main);
 	}
 }
